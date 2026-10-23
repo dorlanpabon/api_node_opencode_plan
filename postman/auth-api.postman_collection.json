@@ -1,0 +1,98 @@
+{
+  "info": {
+    "name": "Auth API - Node.js Express",
+    "description": "Colección para probar la API de autenticación (registro y login con usuario/clave) construida con Node.js, Express, MySQL y JWT.\n\n## Cómo usarla\n1. Arranca la API con `npm run dev` o `npm start`.\n2. Usa el entorno (opcional) o deja `baseUrl` tal cual (localhost:3000).\n3. Primero ejecuta **Register** para crear el usuario, luego **Login**.\n4. Al hacer Login, el token JWT se guarda automáticamente en la variable de colección `{{token}}` para reutilizarlo en peticiones protegidas futuras.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/../health",
+          "host": ["{{baseUrl}}"],
+          "path": ["..", "health"]
+        },
+        "description": "Verifica que la API está corriendo (GET http://localhost:3000/health, sin el prefijo /api)."
+      },
+      "response": []
+    },
+    {
+      "name": "Register",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"usuario1\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/register",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "register"]
+        },
+        "description": "Registra un nuevo usuario.\n\n- 201 → `{ success: true, data: { id, username } }`\n- 409 → usuario duplicado\n- 422 → error de validación (contraseña mínima 8 caracteres)"
+      },
+      "response": []
+    },
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "// Guarda el token JWT en la variable de colección para reutilizarlo",
+              "pm.test(\"Estado 200\", () => pm.response.to.have.status(200));",
+              "const json = pm.response.json();",
+              "if (json.data && json.data.token) {",
+              "  pm.collectionVariables.set(\"token\", json.data.token);",
+              "  console.log(\"Token guardado en {{token}}\");",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"usuario1\",\n  \"password\": \"password123\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": ["{{baseUrl}}"],
+          "path": ["auth", "login"]
+        },
+        "description": "Inicia sesión con usuario y clave.\n\n- 200 → `{ token, user: { id, username } }` (el token se guarda automáticamente en `{{token}}`)\n- 401 → credenciales inválidas\n- 422 → campos ausentes"
+      },
+      "response": []
+    }
+  ]
+}
